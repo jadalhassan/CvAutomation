@@ -1,4 +1,10 @@
 package com.blombank.cvautomation.repository;
 
-public class CVRepository {
+import com.blombank.cvautomation.model.CandidateCV;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface CVRepository extends JpaRepository<CandidateCV,Long> {
+
 }
