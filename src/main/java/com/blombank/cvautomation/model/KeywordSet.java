@@ -1,31 +1,24 @@
 package com.blombank.cvautomation.model;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
-@Setter
-@Getter
 @Entity
-@Table(name="keyword_set")
-
+@Table(name = "keyword_set")
+@Getter
+@Setter
+@NoArgsConstructor
 public class KeywordSet {
+
     @Id
-    private String name;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ElementCollection
-    private List<String> keywords;
+    @Column(name = "keyword", nullable = false)
+    private String keyword;
 
-    public KeywordSet(){}
-
-    public KeywordSet(String name,List<String> keywords){
-        this.name=name;
-        this.keywords=keywords;
-    }
-
+    @Column(name = "track", nullable = false)
+    private String track;
 }

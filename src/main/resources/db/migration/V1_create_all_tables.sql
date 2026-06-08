@@ -1,24 +1,27 @@
--- 1. Create job_track table
-CREATE TABLE job_track(
-     name VARCHAR(100) PRIMARY KEY
+-- ─── candidate_cv ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS candidate_cv (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    candidate_name   VARCHAR(255),
+    phone_number     VARCHAR(50),
+    email_address    VARCHAR(255),
+    matched_keywords TEXT,
+    track            VARCHAR(50),
+    file_name        VARCHAR(255),
+    cv_file          BLOB,
+    processed_at     TIMESTAMP,
+    duplicate_status BOOLEAN
 );
 
--- 2. Create keyword_set table
-CREATE TABLE keyword_set(
-    name VARCHAR(100) PRIMARY KEY,
-    keywords VARCHAR(1000)
-);
+-- ─── job_track ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS job_track (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL UNIQUE,
+    folder_code VARCHAR(50)  NOT NULL UNIQUE
+    );
 
--- 3. Create candidate_cv table
-CREATE TABLE candidate_cv(
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    candidate_name VARCHAR (255),
-    email VARCHAR (255),
-    phone VARCHAR (50),
-    job_track VARCHAR(100),
-    keyword_set VARCHAR(100),
-    filename VARCHAR(255),
-    cv_data BLOB,
-    FOREIGN KEY (job_track) REFERENCES job_track(name),
-    FOREIGN KEY (keyword_set) REFERENCES keyword_set(name)
+-- ─── keyword_set ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS keyword_set (
+    id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    keyword VARCHAR(255) NOT NULL,
+    track   VARCHAR(50)  NOT NULL
 );

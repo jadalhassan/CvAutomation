@@ -1,25 +1,24 @@
 package com.blombank.cvautomation.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
 @Entity
-@Table(name="job_track")
-
+@Table(name = "job_track")
+@Getter
+@Setter
+@NoArgsConstructor
 public class JobTrack {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    public JobTrack(){}
-
-    public JobTrack(String name){
-        this.name=name;
-    }
-
+    @Column(name = "folder_code", nullable = false, unique = true)
+    private String folderCode;
 }
