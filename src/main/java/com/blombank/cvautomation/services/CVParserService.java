@@ -23,7 +23,6 @@ public class CVParserService {
     }
 
     public void saveCVFromFile(MultipartFile file,String candidateName,String email, String phone, String jobTrackName, String keywordsSetName) throws Exception {
-
         return;
     }
 }
