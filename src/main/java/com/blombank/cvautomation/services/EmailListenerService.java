@@ -55,6 +55,12 @@ public class EmailListenerService {
     public void processInbox() {
         logger.info("Starting email inbox scan...");
 
+        if (!hasMailboxCredentials()) {
+            logger.warn("Mailbox credentials are not configured. Set APP_MAIL_USERNAME and APP_MAIL_PASSWORD to enable inbox scanning.");
+            logger.info("Email inbox scan completed.");
+            return;
+        }
+
         Properties props =  buildImapProperties();
         Session session = Session.getInstance(props);
 
@@ -81,6 +87,17 @@ public class EmailListenerService {
             logger.error("Failed to connect to mailbox {}: {}", mailUsername, e.getMessage(), e);
         }
         logger.info("Email inbox scan completed.");
+    }
+
+    private boolean hasMailboxCredentials() {
+        return hasText(mailUsername)
+                && hasText(mailPassword)
+                && !mailUsername.startsWith("your-")
+                && !mailPassword.startsWith("your-");
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private void processMessage(Message message) throws MessagingException, IOException {
