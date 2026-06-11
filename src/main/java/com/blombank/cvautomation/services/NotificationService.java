@@ -24,7 +24,7 @@ public class NotificationService {
     private final CVRepository cvRepository;
     private final JavaMailSender mailSender;
 
-    @Value("{app.mail.hr-recipient}")
+    @Value("${app.mail.hr-recipient}")
     private String hrRecipient;
 
     public NotificationService(CVRepository cvRepository, JavaMailSender mailSender) {

@@ -55,6 +55,7 @@ public class CVParserService {
     private final KeywordSetRepository keywordSetRepository;
     private final NotificationService notificationService;
 
+
     @Value("${app.paths.base-cv-folder}")
     private String baseCvFolder;
 
@@ -280,10 +281,9 @@ public class CVParserService {
 
     private String resolveTrack(String zipFileName) {
         String lower = zipFileName.toLowerCase();
-        if (lower.contains("springboot") || lower.contains("spring boot") || lower.contains("sb")){
+        if (lower.contains("springboot") || lower.contains("spring boot") || lower.contains("sb")) {
             return "sb";
-        }
-        else if (lower.contains("mobile") || lower.contains("mb")){
+        } else if (lower.contains("mobile") || lower.contains("mb")) {
             return "mb";
         }
         return "unknown";
@@ -348,8 +348,8 @@ public class CVParserService {
     }
 
     private void ensureFolder(File folder) {
-        if  (!folder.exists()) {
-            folder.mkdirs();
+        if (!folder.exists() && !folder.mkdirs()) {
+            logger.warn("Could not create folder: {}", folder.getAbsolutePath());
         }
     }
 

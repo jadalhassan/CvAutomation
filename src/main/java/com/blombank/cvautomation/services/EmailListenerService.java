@@ -55,7 +55,7 @@ public class EmailListenerService {
     public void processInbox() {
         logger.info("Starting email inbox scan...");
 
-        Properties props = new Properties();
+        Properties props =  buildImapProperties();
         Session session = Session.getInstance(props);
 
         try(Store store = session.getStore("imaps")){
@@ -138,8 +138,8 @@ public class EmailListenerService {
 
     private File downloadAttachment(BodyPart part, String fileName) {
         File securityDir = new File(securityFolder);
-        if (!securityDir.exists()) {
-            securityDir.mkdirs();
+        if (!securityDir.exists() && !securityDir.mkdirs()) {
+            logger.warn("Could not create security folder: {}", securityDir.getAbsolutePath());
         }
 
         String dateSuffix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
