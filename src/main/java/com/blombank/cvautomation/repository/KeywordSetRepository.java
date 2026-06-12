@@ -9,7 +9,6 @@ import java.util.List;
 @Repository
 public interface KeywordSetRepository extends JpaRepository<KeywordSet, Long> {
 
-    List<KeywordSet> findByTrackIgnoreCase(String track);
     List<KeywordSet> findByTrackIgnoreCaseOrTrackIgnoreCase(String track, String common);
     boolean existsByKeywordIgnoreCaseAndTrackIgnoreCase(String keyword, String track);
 }
