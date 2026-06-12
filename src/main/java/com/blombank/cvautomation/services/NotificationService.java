@@ -10,7 +10,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +25,12 @@ public class NotificationService {
 
     @Value("${app.mail.hr-recipient}")
     private String hrRecipient;
+
+    @Value("${app.viewer.chrome-path:C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe}")
+    private String chromePath;
+
+    @Value("${app.viewer.word-path:C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE}")
+    private String wordPath;
 
     public NotificationService(CVRepository cvRepository, JavaMailSender mailSender) {
         this.cvRepository = cvRepository;
@@ -62,11 +67,17 @@ public class NotificationService {
 
     private boolean isDuplicate(CandidateCV candidate) {
         if (candidate.getEmailAddress() != null && !candidate.getEmailAddress().isBlank()) {
+            cvRepository.findByEmailAddressIgnoreCase(candidate.getEmailAddress()).ifPresent(original ->
+                    logger.warn("Duplicate by email: {} — already processed as '{}' on {}",
+                            candidate.getEmailAddress(),
+                            original.getFileName(),
+                            original.getProcessedAt())
+            );
             if (cvRepository.existsByEmailAddressIgnoreCase(candidate.getEmailAddress())) {
-                logger.warn("Duplicate by email: {}", candidate.getEmailAddress());
                 return true;
             }
         }
+
         if (candidate.getPhoneNumber() != null && !candidate.getPhoneNumber().isBlank()) {
             if (cvRepository.existsByPhoneNumber(candidate.getPhoneNumber())) {
                 logger.warn("Duplicate by phone: {}", candidate.getPhoneNumber());
@@ -85,25 +96,48 @@ public class NotificationService {
     }
 
     private void openFileForReview(File cvFile) {
-
         if (cvFile == null || !cvFile.exists()) {
-            logger.warn("CV file not found for desktop open: {}", cvFile);
+            logger.warn("CV file not found for review open: {}", cvFile);
             return;
         }
 
-        if (!Desktop.isDesktopSupported()) {
-            logger.info("Desktop not supported on this environment — skipping file open for: {}", cvFile.getName());
-            return;
-        }
+        String name = cvFile.getName().toLowerCase();
 
-        try{
-
-            Desktop.getDesktop().open(cvFile);
-            logger.info("Opened CV for HR review: {}", cvFile.getName());
-        } catch (IOException e){
+        try {
+            if (name.endsWith(".pdf")) {
+                openWithChrome(cvFile);
+            } else if (name.endsWith(".docx") || name.endsWith(".doc")) {
+                openWithWord(cvFile);
+            } else {
+                logger.warn("No targeted viewer for file type — skipping open: {}", cvFile.getName());
+            }
+        } catch (Exception e) {
             logger.error("Failed to open CV file {}: {}", cvFile.getName(), e.getMessage(), e);
         }
+    }
 
+    private void openWithChrome(File file) throws IOException {
+        File chrome = new File(chromePath);
+        if (!chrome.exists()) {
+            logger.warn("Chrome not found at '{}' — skipping PDF open for: {}", chromePath, file.getName());
+            return;
+        }
+        new ProcessBuilder(chromePath, file.getAbsolutePath())
+                .inheritIO()
+                .start();
+        logger.info("Opened PDF in Chrome: {}", file.getName());
+    }
+
+    private void openWithWord(File file) throws IOException {
+        File word = new File(wordPath);
+        if (!word.exists()) {
+            logger.warn("Word not found at '{}' — skipping DOCX open for: {}", wordPath, file.getName());
+            return;
+        }
+        new ProcessBuilder(wordPath, file.getAbsolutePath())
+                .inheritIO()
+                .start();
+        logger.info("Opened DOCX in Word: {}", file.getName());
     }
 
     private void sendHrEmail(CandidateCV candidate) {

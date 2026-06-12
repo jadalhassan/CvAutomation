@@ -7,8 +7,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.extractor.WordExtractor;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,9 +34,11 @@ public class CVParserService {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
 
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^(\\+961[3-9]\\d{7}|[3-9]\\d{7})$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile(
+            "(\\+961[3-9]\\d{7}|[3-9]\\d{7})");
 
-    private static final Pattern SKIP_LINE_PATTERN = Pattern.compile("\"(?i)(email|phone|linkedin|github|address|cv|curriculum vitae|@|http|www|\\\\d{5,})");
+    private static final Pattern SKIP_LINE_PATTERN = Pattern.compile(
+            "(?i)(email|phone|linkedin|github|address|cv|curriculum vitae|@|http|www|\\d{5,})");
 
     private static final List<String> DEFAULT_KEYWORDS = List.of(
             "Java", "Spring Boot", "Spring", "Hibernate", "JPA", "REST API", "API",
@@ -97,7 +98,7 @@ public class CVParserService {
             while(entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                if (!entry.isDirectory()) {
+                if (entry.isDirectory()) {
                     continue;
                 }
 
@@ -193,6 +194,14 @@ public class CVParserService {
             for (XWPFParagraph paragraph : doc.getParagraphs()) {
                 sb.append(paragraph.getText()).append("\n");
             }
+            for (XWPFTable table : doc.getTables()) {
+                for (XWPFTableRow row : table.getRows()) {
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        sb.append(cell.getText()).append(" ");
+                    }
+                    sb.append("\n");
+                }
+            }
             return sb.toString();
         }
     }
@@ -229,14 +238,15 @@ public class CVParserService {
     }
 
     private List<KeywordSet> buildDefaultKeywords(String track) {
-        List<KeywordSet> keywords = new ArrayList<>();
         for (String kw : DEFAULT_KEYWORDS) {
-            KeywordSet ks = new KeywordSet();
-            ks.setKeyword(kw);
-            ks.setTrack(track);
-            keywords.add(ks);
+            if(!keywordSetRepository.existsByKeywordIgnoreCaseAndTrackIgnoreCase(kw, track)) {
+                KeywordSet ks = new KeywordSet();
+                ks.setKeyword(kw);
+                ks.setTrack(track);
+                keywordSetRepository.save(ks);
+            }
         }
-        return keywords;
+        return keywordSetRepository.findByTrackIgnoreCaseOrTrackIgnoreCase(track, "common");
     }
 
     private String extractEmail(String text) {
